@@ -27,7 +27,7 @@ public class Bullet extends FlyingObject {
 	public void move() {
 		if (state == ACTIVE) {
 			y -= 7;
-			if (y <= -height) {
+			if (y < 0) {
 				state = REMOVE;
 			}
 		}
