@@ -21,7 +21,7 @@ public class World extends JPanel {
 	private Hero hero;
 	/** 英雄打出的多个子弹 */
 	private Bullet[] bullets;
-	/** 飞行的物体（大飞机， 小飞机，蜜蜂等） **/
+	/** 飞行的物体（大飞机， 小飞机，蜜蜂） **/
 	private FlyingObject[] flyingObjects;
 	/** 计分变量，生命变量，火力变量 **/
 	private int score = 0, life = 3, fireType = 1;
@@ -150,11 +150,12 @@ public class World extends JPanel {
 	/*
 	 * 在world类中添加定时器，和启动定时器的方法
 	 */
-	private Timer timer;
+	private Timer timer= new Timer();
 
 	public void action() {
 		/*
 		 * 开始鼠标的监听
+		 * MouseAdapter是一个实现了MouseListener和MouseMotionListener两个接口的抽象类
 		 */
 		MouseAdapter l = new MouseAdapter() {// 写好了一个监听器
 			@Override
@@ -201,10 +202,10 @@ public class World extends JPanel {
 		};
 
 		// 将监听器加入到当前面板中
-		addMouseListener(l);
-		addMouseMotionListener(l);
+		addMouseListener(l);//鼠标监听器(包括click、release、press、exit、entered等)，参数必须为实现了MouseListener接口的对象
+		addMouseMotionListener(l);//鼠标移动事件监听器(包括drag、move)，参数必须为实现了MouseMotionListener接口的对象
 
-		timer = new Timer();
+		
 		timer.schedule(new TimerTask() {
 			public void run() {
 				if (state == RUNNING) {
@@ -237,7 +238,7 @@ public class World extends JPanel {
 	 * 添加英雄生命周期控制方法
 	 */
 	public void heroLifeCircle() {
-		if (hero.isActive()) {
+		if (hero.isActive()) {//检查英雄机和飞行物之间的碰撞关系
 			for (FlyingObject plane : flyingObjects) {
 				if (plane.isActive() && plane.duang(hero)) {
 					hero.goDead();
@@ -249,11 +250,15 @@ public class World extends JPanel {
 			if (life > 0) {
 				life--;
 				hero = new Hero();
-				// 清场(确保重新生成的英雄机附近的飞机都去死)
+				fireType = 1;//要是有双枪的话就变成单枪(死而复生火力上的优势会丢失)
+				// 清场
 				for (FlyingObject plane : flyingObjects) {
-					if (plane.isActive() && plane.duang(hero)) {
-						plane.goDead();
-					}
+//					if (plane.isActive() && plane.duang(hero)) {
+					//清场的方法1(确保重新生成的英雄机附近的飞机都去死)
+//						plane.goDead();
+//					}
+					//清场的方法2(全场的飞机都死去)
+					plane.goDead();
 				}
 			} else {
 				state = GAME_OVER;
@@ -308,10 +313,10 @@ public class World extends JPanel {
 	}
 
 	/*
-	 * 删除掉那些需要删除的对象 凡是状态时REMOVE的子弹/飞机
+	 * 删除掉那些需要删除的对象 凡是状态时REMOVE的子弹/飞行物
 	 */
 	public void removeObjects() {
-		// 删多余的子弹(性能最有算法是找到第一个状态为REMOVE状态的子弹时才开始创建空数组)
+		// 删多余的子弹(性能最优的算法是找到第一个状态为REMOVE状态的子弹时才开始创建空数组)
 		Bullet[] ary = {};
 		for (Bullet bullet : bullets) {
 			if (bullet.canRemove()) {// 常量要用类名访问,World与FlyingObject没有继承关系
@@ -322,7 +327,7 @@ public class World extends JPanel {
 		}
 		bullets = ary;
 
-		// 删多余的飞机
+		// 删除多余的飞行物
 		FlyingObject[] ary1 = {};
 		for (FlyingObject object : flyingObjects) {
 			if (object.canRemove()) {
